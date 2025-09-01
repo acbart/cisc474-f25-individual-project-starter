@@ -1,4 +1,5 @@
 import Image, { type ImageProps } from "next/image";
+import Link from "next/link";
 import { Button } from "@repo/ui/button";
 import styles from "./page.module.css";
 
@@ -29,6 +30,13 @@ export default function Home() {
                         <code>apps/web/app/page.tsx</code>
                     </li>
                     <li>Save and see your changes instantly.</li>
+                    <li>
+                        Check out the{" "}
+                        <Link href="/courses" className="text-blue-600 hover:text-blue-800 underline">
+                            course catalog
+                        </Link>{" "}
+                        to see server vs client components in action.
+                    </li>
                 </ol>
 
                 <Button appName="web" className={styles.secondary}>
@@ -36,6 +44,19 @@ export default function Home() {
                 </Button>
             </main>
             <footer className={styles.footer}>
+                <Link 
+                    href="/courses"
+                    className="flex items-center gap-2 hover:underline"
+                >
+                    <Image
+                        aria-hidden
+                        src="/window.svg"
+                        alt="Courses icon"
+                        width={16}
+                        height={16}
+                    />
+                    View Courses
+                </Link>
                 <a
                     href="https://vercel.com/templates?search=turborepo&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
                     target="_blank"
