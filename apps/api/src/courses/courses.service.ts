@@ -1,12 +1,22 @@
 import { Injectable } from '@nestjs/common';
-import { CourseCreateIn, CourseUpdateIn } from '@repo/api/courses';
+import { CourseCreateIn, CourseUpdateIn, CourseOut } from '@repo/api/courses';
 import { PrismaService } from '../prisma.service';
 
 @Injectable()
 export class CoursesService {
   constructor(private prisma: PrismaService) {}
-  create(createCourseDto: CourseCreateIn) {
-    return this.prisma.course.create({ data: createCourseDto });
+  async create(createCourseDto: CourseCreateIn): Promise<CourseOut> {
+    const newCourse = await this.prisma.course.create({
+      data: createCourseDto,
+    });
+    return {
+      name: newCourse.name,
+      description: newCourse.description,
+      ownerId: newCourse.ownerId,
+      id: newCourse.id,
+      createdAt: newCourse.createdAt.toString(),
+      updatedAt: newCourse.updatedAt.toString(),
+    };
   }
 
   findAll() {

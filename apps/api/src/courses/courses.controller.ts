@@ -6,9 +6,11 @@ import {
   Patch,
   Param,
   Delete,
+  UsePipes,
 } from '@nestjs/common';
 import { CoursesService } from './courses.service';
 import { CourseRef, CourseUpdateIn, CourseCreateIn } from '@repo/api/courses';
+import { ZodPipe } from 'src/zod_pipe';
 
 @Controller('courses')
 export class CoursesController {
@@ -30,6 +32,9 @@ export class CoursesController {
   }
 
   @Post()
+  //@UsePipes(new ZodPipe(CourseCreateIn))
+  // Unfortunately, a bug in Zod causes this to crash with heap out of memory
+  // But at least we get some compile-time type-safety, if not runtime validation
   create(@Body() createCourseDto: CourseCreateIn) {
     return this.coursesService.create(createCourseDto);
   }
