@@ -19,7 +19,11 @@ function RouteComponent() {
 
   const mutation = useMutation({
     mutationFn: (newCourse: CourseCreateIn) => {
-      return mutateBackend<CourseOut>('/courses', 'POST', newCourse);
+      return mutateBackend<CourseCreateIn, CourseOut>(
+        '/courses',
+        'POST',
+        newCourse,
+      );
     },
     onSuccess: (data: CourseOut) => {
       queryClient.setQueryData(['courses', data.id], data);

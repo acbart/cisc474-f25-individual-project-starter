@@ -5,11 +5,11 @@ export function backendFetcher<T>(endpoint: string): () => Promise<T> {
     );
 }
 
-export async function mutateBackend<T>(
+export async function mutateBackend<Input, Output>(
   endpoint: string,
   method: string,
-  body?: any,
-): Promise<T> {
+  body?: Input,
+): Promise<Output> {
   const response = await fetch(import.meta.env.VITE_BACKEND_URL + endpoint, {
     method,
     headers: {
