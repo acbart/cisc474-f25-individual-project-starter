@@ -1,7 +1,7 @@
-import { createFileRoute, Link } from '@tanstack/react-router';
-import { backendFetcher } from '../../integrations/fetcher';
-import { CourseOut } from '@repo/api';
+import { Link, createFileRoute } from '@tanstack/react-router';
 import { queryOptions, useSuspenseQuery } from '@tanstack/react-query';
+import { backendFetcher } from '../../integrations/fetcher';
+import type { CourseOut } from '@repo/api';
 
 const coursesQueryOptions = (courseId: string) =>
   queryOptions({
