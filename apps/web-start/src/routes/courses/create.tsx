@@ -1,33 +1,26 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { backendFetcher, mutateBackend } from '../../integrations/fetcher';
-import type { CourseCreateIn, CourseOut } from '@repo/api';
+import { useApiMutation, useCurrentUser } from '../../integrations/api';
+import { CourseCreateIn, CourseOut } from '@repo/api';
 
 export const Route = createFileRoute('/courses/create')({
   component: RouteComponent,
 });
 
 function RouteComponent() {
+  const { data: currentUser } = useCurrentUser();
   const [newName, setNewName] = useState('');
   const [newDescription, setNewDescription] = useState('');
-  const [newOwnerId, setNewOwnerId] = useState(
-    '7db121b9-90e4-458f-9baa-c14a41ad4e03',
-  );
 
   const queryClient = useQueryClient();
 
-  const mutation = useMutation({
-    mutationFn: (newCourse: CourseCreateIn) => {
-      return mutateBackend<CourseCreateIn, CourseOut>(
-        '/courses',
-        'POST',
-        newCourse,
-      );
-    },
-    onSuccess: (data: CourseOut) => {
-      queryClient.setQueryData(['courses', data.id], data);
-    },
+  const mutation = useApiMutation<CourseCreateIn, CourseOut>({
+    endpoint: (variables) => ({
+      path: '/courses',
+      method: 'POST',
+    }),
+    invalidateKeys: [['courses']],
   });
 
   return (
@@ -62,14 +55,6 @@ function RouteComponent() {
               onChange={(e) => setNewDescription(e.target.value)}
             />
           </div>
-          <div>
-            <input
-              type="text"
-              placeholder="Owner ID"
-              value={newOwnerId}
-              onChange={(e) => setNewOwnerId(e.target.value)}
-            />
-          </div>
           <div></div>
           <div>
             <button
@@ -77,7 +62,7 @@ function RouteComponent() {
                 mutation.mutate({
                   name: newName,
                   description: newDescription,
-                  ownerId: newOwnerId,
+                  ownerId: currentUser?.id || '',
                 });
               }}
             >

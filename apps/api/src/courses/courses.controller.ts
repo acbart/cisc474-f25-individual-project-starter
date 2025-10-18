@@ -8,11 +8,14 @@ import {
   Delete,
   UsePipes,
   UseGuards,
+  Req,
 } from '@nestjs/common';
 import { CoursesService } from './courses.service';
 import { CourseRef, CourseUpdateIn, CourseCreateIn } from '@repo/api/courses';
 import { ZodPipe } from 'src/zod_pipe';
 import { AuthGuard } from '@nestjs/passport';
+import { CurrentUser } from 'src/auth/current-user.decorator';
+import { JwtUser } from 'src/auth/jwt.strategy';
 
 @Controller('courses')
 export class CoursesController {
@@ -20,7 +23,8 @@ export class CoursesController {
 
   @UseGuards(AuthGuard('jwt'))
   @Get()
-  findAll() {
+  findAll(@CurrentUser() user: JwtUser) {
+    console.log('User accessed:', user);
     return this.coursesService.findAll();
   }
 
@@ -40,7 +44,11 @@ export class CoursesController {
   //@UsePipes(new ZodPipe(CourseCreateIn))
   // Unfortunately, a bug in Zod causes this to crash with heap out of memory
   // But at least we get some compile-time type-safety, if not runtime validation
-  create(@Body() createCourseDto: CourseCreateIn) {
+  create(
+    @Body() createCourseDto: CourseCreateIn,
+    @CurrentUser() user: JwtUser,
+  ) {
+    createCourseDto.ownerId = user.userId;
     return this.coursesService.create(createCourseDto);
   }
 

@@ -1,24 +1,32 @@
 import { Link, createFileRoute } from '@tanstack/react-router';
 import { queryOptions, useSuspenseQuery } from '@tanstack/react-query';
-import { backendFetcher } from '../../integrations/fetcher';
+import { useApiQuery } from '../../integrations/api';
 import type { CourseOut } from '@repo/api';
-
-const coursesQueryOptions = (courseId: string) =>
-  queryOptions({
-    queryKey: ['courses', courseId],
-    queryFn: backendFetcher<CourseOut>(`/courses/${courseId}`),
-  });
 
 export const Route = createFileRoute('/courses/$courseId')({
   component: RouteComponent,
-  loader: ({ context: { queryClient }, params: { courseId } }) => {
-    return queryClient.ensureQueryData(coursesQueryOptions(courseId));
-  },
 });
 
 function RouteComponent() {
   const courseId = Route.useParams().courseId;
-  const { data: course } = useSuspenseQuery(coursesQueryOptions(courseId));
+  const {
+    data: course,
+    showLoading,
+    error,
+  } = useApiQuery<CourseOut>(['courses', courseId], `/courses/${courseId}`);
+
+  if (showLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error.message}</div>;
+  }
+
+  if (!course) {
+    return <div>Course not found</div>;
+  }
+
   return (
     <div>
       <header>

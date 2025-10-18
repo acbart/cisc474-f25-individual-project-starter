@@ -1,27 +1,26 @@
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import { Link, createFileRoute } from '@tanstack/react-router';
-import { backendFetcher } from '../../integrations/fetcher';
-import type { CourseOut } from '@repo/api';
-
-const coursesQueryOptions = {
-  queryKey: ['courses'],
-  queryFn: backendFetcher<Array<CourseOut>>('/courses'),
-  initialData: [],
-};
+import { useApiQuery, useCurrentUser } from '../../integrations/api';
+import { CourseOut } from '@repo/api';
 
 export const Route = createFileRoute('/courses/')({
   component: RouteComponent,
-  loader: ({ context: { queryClient } }) =>
-    queryClient.ensureQueryData(coursesQueryOptions),
 });
 
 function RouteComponent() {
-  const { data, refetch, error, isFetching } = useQuery(coursesQueryOptions);
+  const { data: user } = useCurrentUser();
+  const query = useApiQuery<Array<CourseOut>>(['courses'], '/courses');
 
-  if (isFetching) return <div>Loading...</div>;
+  const { data, refetch, error, showLoading } = query;
 
   if (error) {
     return <div>Error: {error.message}</div>;
+  }
+
+  if (showLoading) return <div>Loading...</div>;
+
+  if (!data || data.length === 0) {
+    return <div>No courses found.</div>;
   }
 
   return (
@@ -36,6 +35,9 @@ function RouteComponent() {
           </li>
         </ul>
       </nav>
+      <div>
+        Welcome {user?.name} (ID: {user?.id}) to the Courses page!
+      </div>
       Courses:
       <article>
         {data.map((course) => (

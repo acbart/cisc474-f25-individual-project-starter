@@ -16,6 +16,7 @@
     "check": "prettier --write . && eslint --fix"
   },
   "dependencies": {
+    "@auth0/auth0-react": "^2.7.0",
     "@netlify/vite-plugin-tanstack-start": "^1.0.2",
     "@picocss/pico": "^2.1.1",
     "@repo/ui": "*",
