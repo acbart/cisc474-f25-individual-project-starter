@@ -158,3 +158,75 @@ Once you are ready to deploy, you can use Cloudflare Workers for the frontend. T
 I had an error with my Render deploy, but this was fixed after I emptied the cache and redeployed. Make sure you update your backend's secrets to include the new origin URL for your frontend.
 
 You are free to shut down your Vercel frontend. We won't need it anymore.
+
+## Changes on October 19, 2025
+
+Set up an account on Auth0. I recommend using your Github account to sign up.
+
+Register your application. You will be making an API first (since we will do authentication through your Render backend).
+
+- For the Name, you can use something like "F25 CISC474 Username Individual".
+- For the Identifier, I recommend using the URL of your deployed Render application (e.g., `https://<whatever>.onrender.com/`)
+
+Go to the Permissions tab, and also add a new permission (scope). For now, you can just make it something like `read:courses`. This will become important if you want to add finer-grained authorization to your application, but we'll keep things simple for now.
+
+### Backend
+
+Save, and now head back to VS Code. We need to create an authentication module, controller, and service in the `apps/api` package. CD into that folder and run the following commands:
+
+```
+nest g module auth
+nest g controller auth
+nest g service auth
+```
+
+You'll also need to install some new modules:
+
+```
+npm install @nestjs/jwt @nestjs/passport passport passport-auth0 passport-jwt jwks-rsa
+npm install -D @types/passport-auth0 @types/passport-jwt @types/passport-jwt
+```
+
+Then copy over the `jwt.strategy.ts` file and the `current-user.decorator.ts` from the `apps/api/src/auth/` folder.
+
+You'll need to add some new environment variables to your `apps/api/.env` file and your top-level `./.env` (and on Render itself, when you deploy) for `AUTH0_ISSUER_URL` and `AUTH0_AUDIENCE`. You can find their values in the example code they provide for the QuickStart. I recommend you look at the Node.JS tab and then get them from the `audience` and `issuerBaseURL` fields. Make sure that both of them have the trailing slash. These URLS _must_ match the ones that get sent by the frontend, so precision matters.
+
+You'll need to modify your `auth.module.ts` file to have the appropriate import, providers, and exports.
+
+Attach guards to all the Courses endpoints, for now. This let's you verify that you've set things up correctly. If you have, then you won't be able to access any of the API routes due to authorization errors. Keep in mind that the verb you use affects whether you are accessing a given route (e.g., the `courses/create/` route is expecting POST, not GET, so you cannot easily access it from your regular browser navigation).
+
+You'll also be able to now attach the `@CurrentUser() user: JwtUser` parameter to endpoints, so that you can access the current user information.
+
+One critical other route to add is `users/me` over in `users.controller.ts`. This let's you let a user get their current information.
+
+### Frontend
+
+Now we need to set up the client application for the frontend SPA. Back on the Auth0 dashboard, go to Applications and create a new Application of the type "Single Page Application".
+
+In the following menu, go to Settings. Then go down to "Application URIs". For the Allowed Callback URLs, you will need to provide at least your frontend's localhost and Cloudflare backend, something like:
+
+http://localhost:3001/home,https://cisc474-f25-acbart.acbart.workers.dev/home
+
+Notice we are using the frontend, not the backend, since that is where the redirects are being handled.
+
+You can use the same values for the Allowed Logout URLs.
+
+For the Allowed Web Origins, you will need to provide just the localhost and CW frontend domains. Make sure you include the port for localhost, and no trailing slashes:
+
+http://localhost:3001,https://cisc474-f25-acbart.acbart.workers.dev
+
+Save, and let's go back to VS Code. This time we'll be in the frontend (apps/web-start). I followed the Quickstart instructions for React, but I'll give you the summarized version here. We'll need to install the auth0 sdk for React.
+
+```
+npm install @auth0/auth0-react
+```
+
+We're going to need to inject an `Auth0Provider` into the context of our application's root. So open up `router.tsx` and wrap the provider around the existing `TanStackQuery.Provider`. Note that this means you need environment variables for your frontend. You can get the values from the Settings menu.
+
+I've made some modifications to my `backendFetcher` to turn it into `api.ts`, and it now handles all the authentication stuff for us (including getting the token). If you take advantage of my changes, you'll now see errors when you try to navigate to `localhost:3001/courses/` (because we're not authenticated yet). It might take a while, because the `useQuery` function will helpfully try a few times before it gives up.
+
+Next you'll need to add a new LoginButton component. I added this in a new `apps/web-start/components/` directory. Then, I incorporate that button into my `apps/web-start/routes/index.tsx` page. I also created a LogoutButton at the same time.
+
+I also needed to create a `apps/web-start/routes/home.tsx` page, which will be able to take advantage of the information I get from the login process. Normally, you would then use that information to populate the database record in the backend properly. But you will see that I am going to instead just leave that information client-side. You could create a form that let's a user update their information, which can then be pulled with the `users/me` endpoint.
+
+The flow will be that the user clicks the login button, that takes them to Auth0 for login, that redirects to `home` on the frontend, and then they can access routes that have guarded backends.
