@@ -230,3 +230,5 @@ Next you'll need to add a new LoginButton component. I added this in a new `apps
 I also needed to create a `apps/web-start/routes/home.tsx` page, which will be able to take advantage of the information I get from the login process. Normally, you would then use that information to populate the database record in the backend properly. But you will see that I am going to instead just leave that information client-side. You could create a form that let's a user update their information, which can then be pulled with the `users/me` endpoint.
 
 The flow will be that the user clicks the login button, that takes them to Auth0 for login, that redirects to `home` on the frontend, and then they can access routes that have guarded backends.
+
+Here's the diff of all the things I ended up doing: <https://github.com/acbart/cisc474-f25-individual-project-starter/compare/fcf00a8a0e8c5db0aaa1cedb025cd0386f885f4d...main>
